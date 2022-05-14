@@ -28,14 +28,22 @@ public:
 
 	void WalkForward(float AxisValue);
 	void WalkRight(float AxisValue);
+	void LookUp(float AxisValue);
+	void LookRight(float AxisValue);
 	void ToggleSprint();
+	void ToggleAim();
+	void Reload();
+	void FireGun();
 
 private:
 
 	bool bIsWalkingRight = false;
 	bool bIsWalkingForward = false;
+	bool bIsAiming = false;
 
 	float BaseWalkSpeed = 600.f;
 	float SprintSpeed = 1200.f;
 	float ActiveWalkSpeed = BaseWalkSpeed;
+
+	class UCameraComponent* CameraComponent;
 };
