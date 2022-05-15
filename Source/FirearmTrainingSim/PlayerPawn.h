@@ -19,6 +19,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//class ACapsuleComponent* CapsuleComponent;
+
+	UPROPERTY(EditAnywhere)
+	float BaseWalkSpeed = 600.f;
+
+	UPROPERTY(EditAnywhere)
+	float SprintSpeed = 1200.f;
+
+	UPROPERTY(EditAnywhere)
+	float GunReach = 1000.f;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -36,14 +46,15 @@ public:
 	void FireGun();
 
 private:
-
 	bool bIsWalkingRight = false;
 	bool bIsWalkingForward = false;
 	bool bIsAiming = false;
 
-	float BaseWalkSpeed = 600.f;
-	float SprintSpeed = 1200.f;
+	int LoadedAmmo = 0;
+	int StoredAmmo = 12;
+	int GunCapacity = 6;
+
 	float ActiveWalkSpeed = BaseWalkSpeed;
 
-	class UCameraComponent* CameraComponent;
+	FHitResult LineOfFireHitResult;
 };

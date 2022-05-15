@@ -3,17 +3,14 @@
 #define DEBUG_LOG(text) GEngine->AddOnScreenDebugMessage(-1,1,FColor::Cyan, text)
 
 #include "PlayerPawn.h"
-#include "Camera/CameraComponent.h"
+#include "Engine/World.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 APlayerPawn::APlayerPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	CameraComponent->SetupAttachment(RootComponent);
-
 }
 
 // Called when the game starts or when spawned
@@ -80,13 +77,13 @@ void APlayerPawn::WalkRight(float AxisValue)
 
 void APlayerPawn::LookUp(float AxisValue)
 {
-	CameraComponent->AddLocalRotation(FRotator(AxisValue, 0.f, 0.f));
+	AddControllerPitchInput(AxisValue);
 }
 
 void APlayerPawn::LookRight(float AxisValue)
 {
-	CameraComponent->AddLocalRotation(FRotator(0.f, AxisValue, 0.f));
-	SetActorRotation(FRotator(0.f, CameraComponent->GetComponentRotation().Yaw, 0.f));
+	AddControllerYawInput(AxisValue);
+	SetActorRotation(FRotator(0.f, GetController()->GetControlRotation().Yaw, 0.f));
 }
 
 void APlayerPawn::ToggleSprint()
@@ -106,12 +103,44 @@ void APlayerPawn::Reload()
 {
 	DEBUG_LOG(TEXT("Reloading"));
 	//TODO: implement reloading behaviour
+	if ((StoredAmmo > 0) && (LoadedAmmo < GunCapacity))
+	{
+		if (StoredAmmo > (GunCapacity - LoadedAmmo))
+		{
+			StoredAmmo -= (GunCapacity - LoadedAmmo);
+			LoadedAmmo += (GunCapacity - LoadedAmmo);
+		}
+		else
+		{
+			LoadedAmmo += StoredAmmo;
+			StoredAmmo = 0;
+		}
+	}
+	DEBUG_LOG(FString::Printf(TEXT("Ammo: %d / %d \nStored Ammo: %d"), LoadedAmmo, GunCapacity, StoredAmmo));
 }
 void APlayerPawn::FireGun()
 {
 	if (bIsAiming)
 	{
-		DEBUG_LOG(TEXT("Bang!!!"));
-		//TODO: implement firing behaviour
+		if (LoadedAmmo > 0)
+		{
+			DEBUG_LOG(TEXT("Bang!!!"));
+			//TODO: implement firing behaviour
+			if (GetWorld()->LineTraceSingleByChannel(
+				LineOfFireHitResult,
+				GetActorLocation(),
+				GetActorLocation() + GetControlRotation().Vector() * GunReach,
+				ECollisionChannel::ECC_Visibility
+			))
+			{
+				DEBUG_LOG(LineOfFireHitResult.GetActor()->GetName());
+			}
+			DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetControlRotation().Vector() * GunReach, FColor::Red, true, 3.f);
+			LoadedAmmo--;
+		}
+		else
+		{
+			DEBUG_LOG(TEXT("Out of Ammo!!!"));
+		}
 	}
 }
